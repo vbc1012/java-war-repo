@@ -1,4 +1,4 @@
-ntspipeline {
+pipeline {
     agent { label 'MavenAgents' }
     
     stages {
