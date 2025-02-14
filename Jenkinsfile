@@ -1,5 +1,5 @@
-pipeline {
-    agent { label 'maven_agent_1' }
+ntspipeline {
+    agent { label 'MavenAgents' }
     
     stages {
         stage('Clone Repository') {
