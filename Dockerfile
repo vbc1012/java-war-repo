@@ -13,11 +13,13 @@ FROM tomcat:10.1-jdk17
 # Set working directory
 WORKDIR /usr/local/tomcat/
 
-# Copy server.xml (with HTTPS settings)
-COPY server.xml conf/server.xml
+# Generate a self-signed certificate inside the container
+RUN keytool -genkey -alias tomcat \
+    -keyalg RSA -keystore conf/keystore.jks \
+    -storepass changeit -dname "CN=localhost, OU=DevOps, O=MyCompany, L=City, S=State, C=US" -validity 365
 
-# Copy keystore file for SSL
-COPY keystore.jks conf/keystore.jks
+# Copy server.xml with HTTPS settings
+COPY server.xml conf/server.xml
 
 # Copy the WAR file
 COPY --from=builder /opt/apps/java-war-repo/target/*.war webapps/opskill.war
