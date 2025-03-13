@@ -1,29 +1,59 @@
 pipeline {
     agent { label 'MavenAgents' }
-    
+
+    environment {
+        IMAGE_NAME = "myapp3"
+        IMAGE_TAG = "v2"
+        AWS_REGION = 'us-east-1'
+        AWS_ACCOUNT_ID = '490004634805'
+        ECR_REPO = 'jenkinsrepo'
+        ECR_URI = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO}"
+    }
+
     stages {
         stage('Clone Repository') {
             steps {
-                sh 'git clone https://github.com/vbc1012/java-war-repo.git'
+                git branch: 'main', url: 'https://github.com/vbc1012/java-war-repo.git'
             }
         }
 
-        stage('Build') {
+        stage('Build with Maven') {
             steps {
-                sh '''
-                    cd java-war-repo
-                    mvn clean install
-                '''
+                sh 'mvn clean package'
             }
         }
-    }
-
-    post {
-        success {
-            echo 'Build completed successfully!'
+        
+        stage('Run Unit Tests') {
+            steps {
+                sh 'mvn test'
+            }
         }
-        failure {
-            echo 'Build failed. Check the logs.'
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
+                }
+            }
+        }
+
+        stage('Login to ECR') {
+            steps {
+                script {
+                    sh "aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_URI}"
+                }
+            }
+        }
+
+        stage('Tag and Push Image') {
+            steps {
+                script {
+                    sh """
+                    docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${ECR_URI}:${IMAGE_TAG}
+                    docker push ${ECR_URI}:${IMAGE_TAG}
+                    """
+                }
+            }
         }
     }
 }
