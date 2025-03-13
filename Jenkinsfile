@@ -2,8 +2,11 @@ pipeline {
     agent { label 'MavenAgents' }
 
     environment {
+        DOCKER_HOST = "tcp://34.239.126.72:2375"  // Remote Docker Host
         IMAGE_NAME = "myapp3"
         IMAGE_TAG = "v2"
+        DOCKER_USER = "your-dockerhub-username"
+        DOCKER_PASS = "your-dockerhub-password"
         AWS_REGION = 'us-east-1'
         AWS_ACCOUNT_ID = '490004634805'
         ECR_REPO = 'jenkinsrepo'
